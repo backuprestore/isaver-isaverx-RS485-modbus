@@ -29,8 +29,9 @@ https://github.com/htilly/ha-esp32-variable-speed-drive-esphome
 - if power off/on by powerloss, you can control the inverter by rs485 IF the inverter was running or was shutdown by RS485 when it lost power
 - after wake up by commanded rpm, inverter is using max rpm for 60sec
 - NOTE: after commanding rpm, override is active for just 60sec, afterwards inverter switching to last known manuall state
-- NOTE: you have to actively poll(read) information with 0xC3 to keep the commanded rpm active (not sure if extensive writing woth 0xD0 will kill eeprom)
+- NOTE: you have to poll(read) information with 0xC3 frequently (<60sec) to keep the commanded rpm active (not sure if extensive writing with 0xD0 will kill eeprom)
 - NOTE: RS485 has a lower priority then digital input
+- NOTE: RS485 turn off timer programm -> 
 
 ### examples:
 READ -> 0xC3 Command not 0x03 like standard modbus    
@@ -51,7 +52,7 @@ AA D0 0B B9 00 02 00 83 67
 ## 3.) Digital Input
 -> permanently connecting IN1-4 to ground will activate the function
 - GND: ground
-- IN1: Off - if disconnected, the digital control will be invalid;
+- IN1: Off - this really power off inverter! you can't wake with rs485, just IN2-4, but will never be
 - IN2: ON 2900rpm (backwash) - if disconnected, the control priority will be back on panel control;
 - IN3: ON 2400rpm (day mode) - if disconnected, the control priority will be back on panel control;
 - IN4: ON 1200rpm (night mode) - if disconnected, the control priority will be back on panel control;
