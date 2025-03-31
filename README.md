@@ -4,6 +4,7 @@ NVERSilence, Madimack, Rapid X20, AtecPool, Trendpool, Vario, AquaForte, Vitalia
 
 further links:
 https://community.home-assistant.io/t/modbus-isaver-pool-pump-inverter-custom-commands-issue-response-mising-bytes/714637
+https://github.com/htilly/ha-esp32-variable-speed-drive-esphome
 
 Connection:
 - iSaverX display pcb CN3
