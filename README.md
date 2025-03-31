@@ -25,6 +25,7 @@ precondition:
 - power on inverter manually!
 - now you can change rpm or turn off/on again
 - if power off manually, you can't wakeup inverter by rs485
+- after wake up, inverter is using max rpm for 60sec, afterwards switching to commanded rpm
 
 READ -> 0xC3 Command not 0x03 like standard modbus
 AA C3 07 D1 00 00 0D 4D
