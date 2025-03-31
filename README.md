@@ -25,7 +25,9 @@ precondition:
 - power on inverter manually!
 - now you can change rpm or turn off/on again
 - if power off manually, you can't wakeup inverter by rs485
-- after wake up, inverter is using max rpm for 60sec, afterwards switching to commanded rpm
+- after wake up by commanded rpm, inverter is using max rpm for 60sec
+- after commanded rpm, override is active for just 60sec, afterwards inverter switching to last know manuall state (stupid)
+- you have to send the commanded rpm <60sec again!!!
 
 READ -> 0xC3 Command not 0x03 like standard modbus
 AA C3 07 D1 00 00 0D 4D
@@ -44,11 +46,18 @@ AA D0 0B B9 00 02 00 83 67
 
  
 digital Input
+-> permanently connecting IN1-4 to ground will activate the function
+-> 
 - GND: ground
-- IN1: On/Off
-- IN2: 2900rpm (backwash)
-- IN3: 2400rpm (day mode)
-- IN4: 1200rpm (night mode)
+- IN1: Off - if disconnected, the digital control will be invalid;
+- IN2: ON 2900rpm (backwash) - if disconnected, the control priority will be back on panel control;
+- IN3: ON 2400rpm (day mode) - if disconnected, the control priority will be back on panel control;
+- IN4: ON 1200rpm (night mode) - if disconnected, the control priority will be back on panel control;
 
 usage:
- For example – to enable external speed control via digital input, connect one of the digits from Di2/3/4 to COM
+ For example
+ - inverter is on night mode
+ - connecting IN2 to GND will force 2900rpm... if disconnected, inverter switch back to previous state (night mode)
+
+ - inverter is off
+ - connecting IN2 to GND will force 2900rpm... if disconnected, inverter switch back to off
