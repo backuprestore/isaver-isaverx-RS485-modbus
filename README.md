@@ -23,13 +23,16 @@ RS485
 -> check protocol.pdf: 1200-8-N-1; default slave 0xAA(170)
 
 precondition:
-- power on inverter manually!
-- now you can change rpm or turn off/on again
-- if power off manually, you can't wakeup inverter by rs485
+- power on inverter manually - motor running!
+- now you can change rpm or turn off/on by RS485
+- if power off manually (keyboard), you can't wakeup inverter by rs485
+- if power off/on by powerloss, you can control the inverter by rs485 IF the inverter was running or was shutdown by RS485 when it lost power
 - after wake up by commanded rpm, inverter is using max rpm for 60sec
-- after commanded rpm, override is active for just 60sec, afterwards inverter switching to last know manuall state (stupid)
-- you have to send the commanded rpm <60sec again!!!
+- NOTE: after commanding rpm, override is active for just 60sec, afterwards inverter switching to last known manuall state
+- NOTE: you have to actively poll(read) information with 0xC3 to keep the commanded rpm active (not sure if extensive writing woth 0xD0 will kill eeprom)
+- NOTE: RS485 has a lower priority then digital input
 
+examples:
 READ -> 0xC3 Command not 0x03 like standard modbus
 AA C3 07 D1 00 00 0D 4D
 RESPONSE
