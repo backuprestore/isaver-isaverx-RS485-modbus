@@ -6,13 +6,17 @@ NVERSilence, Madimack, Rapid X20, AtecPool, Trendpool, Vario, AquaForte, Vitalia
 https://community.home-assistant.io/t/modbus-isaver-pool-pump-inverter-custom-commands-issue-response-mising-bytes/714637
 https://github.com/htilly/ha-esp32-variable-speed-drive-esphome
 
-## Connection on :
-- iSaverX display pcb CN3   
-- JST-PH-9 2mm distance   
+## Wiring :
+- JST-PH-9 (2mm) --> https://www.amazon.de/dp/B0BM82KR17?ref=ppx_yo2ov_dt_b_fed_asin_title
+- SP21 9pin IP68 --> https://www.amazon.de/dp/B07GZPTZJV?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1
+- you need to widen the hole 20mm -> 21mm   
 
----+---+---+---+---+---+---+---+---+---   
-  GND   V/I    B     A    GND IN1 IN2 IN3 IN4   
-|-analog-|-RS485-|---digital----------|   
+|----bl---wh---bl---re---bl---ye---gr---gr---gr---     
+|----1----2----3----4----5----6----7----8----9---  
+|-GND-V/I----B---A---GND--IN1-IN2-IN3-IN4--    
+|--analog---|-RS485-|---digital------------------|
+
+![image](picture/2025-04-01_20-34-54_IMG_1743.JPG)
 
 ## 1.) Analog Input
 - not tested
