@@ -1,0 +1,226 @@
+esphome:
+  name: 8266test
+  friendly_name: 8266test
+  on_boot:
+    priority: -100
+    then:
+      - lambda: |-
+          if (id(pump_rpm).state > 0) {
+            id(pump_rpm).make_call().set_value(id(pump_rpm).state).perform();
+          }
+
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "4cwE2b/C8l63Ar1DS1ehwUgIM8JCLebgmXsQVsDDK9M="
+
+ota:
+  - platform: esphome
+    password: "481bf90381a1125488938130ae60c658"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none # 8266 NONE - ESP32 LIGHT
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "8266Test Fallback Hotspot"
+    password: "euPFQjFDwIiI"
+
+captive_portal:
+
+# MAX485 parameter
+uart:
+  id: modbus_uart
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 1200
+  data_bits: 8
+  stop_bits: 1
+  parity: NONE
+  #debug: #uncomment for debug output
+
+# MAX485 EnablePin
+output:
+  - platform: gpio
+    id: modbus_write_enable
+    pin: GPIO4
+
+# Configure Sensors
+
+text_sensor:
+  - platform: template
+    name: "Modbus Status"
+    id: modbus_status
+  
+  - platform: template
+    name: "Current Pool Pump Error"
+    id: pump_error_text
+
+# Set RPM
+number:
+  - platform: template
+    name: "Pool Pump RPM"
+    id: pump_rpm
+    min_value: 0  #RPM = 1 OFF , valid 1200-2900rpm
+    max_value: 2900
+    step: 50
+    set_action:
+      then:
+        - lambda: |-
+            id(modbus_write_enable).turn_on();
+            uint16_t rpm = (uint16_t)x;
+            if (rpm < 1200) {
+              rpm = 1;
+            }
+            uint8_t rpm0 = (rpm >> 8) & 0xFF;
+            uint8_t rpm1 = rpm & 0xFF;
+            uint8_t data[6] = {0xAA, 0xD0, 0x0B, 0xB9, rpm0, rpm1};
+            uint16_t crc = 0xFFFF;
+            for (int i = 0; i < 6; i++) {
+              crc ^= data[i];
+              for (int j = 0; j < 8; j++) {
+                if (crc & 0x0001) {
+                  crc >>= 1;
+                  crc ^= 0xA001;
+                } else {
+                  crc >>= 1;
+                }
+              }
+            }
+            uint8_t crc0 = crc & 0xFF;
+            uint8_t crc1 = (crc >> 8) & 0xFF;
+            uint8_t packet[8] = {0xAA, 0xD0, 0x0B, 0xB9, rpm0, rpm1, crc0, crc1};
+            auto uart = id(modbus_uart);
+            uart->write_array(packet, 8);
+            uart->flush();
+            id(modbus_write_enable).turn_off();
+
+sensor:
+  - platform: template
+    name: "Current Pool Pump RPM"
+    id: pump_rpm_state
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    update_interval: never
+    force_update: false
+
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          uint8_t packet[8] = {0xAA, 0xC3, 0x07, 0xD1, 0x00, 0x00, 0x0D, 0x4D}; //Request Frame, no need to calculate
+
+          id(modbus_write_enable).turn_on();
+                    
+          auto uart = id(modbus_uart);
+
+          //empty the receive buffer
+          while(uart->available() > 0) {
+            uint8_t t;
+            uart->read_array(&t, 1);
+          }
+
+          //write data packet
+          uart->write_array(packet, 8);
+          uart->flush();
+          id(modbus_write_enable).turn_off();
+
+          // wait 200msec for response
+          uint32_t start_time = millis();
+          while (uart->available() < 8 && (millis() - start_time) < 200) {
+            delay(10);
+          }
+
+          //check response
+          if (uart->available() >= 7) {
+            uint8_t response[7];
+            uart->read_array(response, 7);
+
+            if ((response[0] == 0xAA) && (response[1] == 0xC3))  {
+              
+              id(modbus_status).publish_state("Online");
+
+              uint16_t error = ((uint16_t)response[2] << 8 | (uint16_t)response[3]);
+              if (error >= 1) {
+                if (error & (1 << 0)) id(pump_error_text).publish_state("Error Bit 0: unclear ");
+                else if (error & (1 << 1)) id(pump_error_text).publish_state("Error Bit 1: unclear ");
+                else if (error & (1 << 2)) id(pump_error_text).publish_state("Error Bit 2: unclear ");
+                else if (error & (1 << 3)) id(pump_error_text).publish_state("Error Bit 3: unclear ");
+                else if (error & (1 << 4)) id(pump_error_text).publish_state("Error Bit 4: RS485 communication error with external control ");
+                else if (error & (1 << 5)) id(pump_error_text).publish_state("Error Bit 5: Auto speed reduction against high temperature warning ");
+                else if (error & (1 << 6)) id(pump_error_text).publish_state("Error Bit 6: Communication error between keypad an master control ");
+                else if (error & (1 << 7)) id(pump_error_text).publish_state("Error Bit 7: EEPROM reading error ");
+                else if (error & (1 << 8)) id(pump_error_text).publish_state("Error Bit 8: RTC time reading error ");
+                else if (error & (1 << 9)) id(pump_error_text).publish_state("Error Bit 9: EEPROM master board");
+                else if (error & (1 << 10)) id(pump_error_text).publish_state("Error Bit 10: current circuit error ");
+                else if (error & (1 << 11)) id(pump_error_text).publish_state("Error Bit 11: master drive error ");
+                else if (error & (1 << 12)) id(pump_error_text).publish_state("Error Bit 12: heat sink sensor error ");
+                else if (error & (1 << 13)) id(pump_error_text).publish_state("Error Bit 13: heat sink overheat ");
+                else if (error & (1 << 14)) id(pump_error_text).publish_state("Error Bit 14: output current exceeds limit");
+                else if (error & (1 << 15)) id(pump_error_text).publish_state("Error Bit 15: Input voltage abnormal");
+              }
+              else {
+                id(pump_error_text).publish_state("No Error");
+              }              
+
+              uint8_t valueOnOff = ((uint8_t)response[4]);           
+              if ((valueOnOff == 1) && (id(pump_power).state == false)) {
+                id(pump_power).publish_state(true);
+              }
+              else if ((valueOnOff != 1) && (id(pump_power).state == true)) {
+                id(pump_power).publish_state(false);
+              }
+
+              float valueRPM = (float)((uint16_t)response[5] << 8 | (uint16_t)response[6]);
+              if (valueRPM != id(pump_rpm_state).state) {
+                id(pump_rpm_state).publish_state(valueRPM);
+                id(pump_rpm).publish_state(valueRPM);
+              }
+            } else {
+              id(modbus_status).publish_state("Wrong Data Header");
+            }
+
+          } else {
+            id(modbus_status).publish_state("No Response");
+          }
+
+switch:
+  - platform: template
+    name: "Pool Pump Power"
+    id: pump_power
+    #optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(pump_rpm).make_call().set_value(1800).perform();
+    turn_off_action:
+      - lambda: |-
+          id(pump_rpm).make_call().set_value(0).perform();
+
+button:
+  - platform: template
+    name: "Pool Pump ECO"
+    on_press:
+      - lambda: |-
+          id(pump_rpm).make_call().set_value(1300).perform();
+
+  - platform: template
+    name: "Pool Pump NORMAL"
+    on_press:
+      - lambda: |-
+          id(pump_rpm).make_call().set_value(1800).perform();
+
+  - platform: template
+    name: "Pool Pump MAX"
+    on_press:
+      - lambda: |-
+          id(pump_rpm).make_call().set_value(2900).perform();
