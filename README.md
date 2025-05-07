@@ -55,7 +55,7 @@ AA D0 0B B9 00 02 00 83 67
 ## 3.) Digital Input
 -> permanently connecting IN1-4 to ground will activate the function
 - GND: ground
-- IN1: Off - this really power off inverter! you can't wake with rs485, just IN2-4, but will never be
+- IN1: Off - this really power off inverter! you can't wake with rs485, just IN2-4, but will never be controllable by modbus
 - IN2: ON 2900rpm (backwash) - if disconnected, the control priority will be back on panel control;
 - IN3: ON 2400rpm (day mode) - if disconnected, the control priority will be back on panel control;
 - IN4: ON 1200rpm (night mode) - if disconnected, the control priority will be back on panel control;
