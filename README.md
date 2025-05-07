@@ -1,5 +1,5 @@
-# isaver-RS485-modbus-
-NVERSilence, Madimack, Rapid X20, AtecPool, Trendpool, Vario, AquaForte, Vitalia, Aquagripp, Aquagem iSaver pool inverter
+# isaverx modbus retrofit for newer models or missing connector (RS485 modbus/ digital input /analog input)
+equal devices: NVERSilence, Madimack, Rapid X20, AtecPool, Trendpool, Vario, AquaForte, Vitalia, Aquagripp, Aquagem iSaver pool inverter
 
 
 ### further links:
