@@ -1,7 +1,5 @@
-# isaverx modbus retrofit for newer models or missing connector (RS485 modbus/ digital input /analog input)
-# ESPHOME configuration for ESP8266
+# isaverx modbus connector retrofit and ESPHOME setup for newer models 
 equal devices: NVERSilence, Madimack, Rapid X20, AtecPool, Trendpool, Vario, AquaForte, Vitalia, Aquagripp, Aquagem iSaver pool inverter
-
 
 ### further links:
 https://community.home-assistant.io/t/modbus-isaver-pool-pump-inverter-custom-commands-issue-response-mising-bytes/714637
@@ -69,3 +67,5 @@ AA D0 0B B9 00 02 00 83 67
 
  - inverter is off
  - connecting IN2 to GND will force 2900rpm... if disconnected, inverter switch back to off
+
+
