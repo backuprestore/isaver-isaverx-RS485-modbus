@@ -1,4 +1,5 @@
 # isaverx modbus retrofit for newer models or missing connector (RS485 modbus/ digital input /analog input)
+# ESPHOME configuration for ESP8266
 equal devices: NVERSilence, Madimack, Rapid X20, AtecPool, Trendpool, Vario, AquaForte, Vitalia, Aquagripp, Aquagem iSaver pool inverter
 
 
